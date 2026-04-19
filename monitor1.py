@@ -26,10 +26,8 @@ TRACEPOINT_PROBE(raw_syscalls, sys_enter) {
 b = BPF(text=bpf_program)
 print("✅ BPF Compiled!")
 
-# كل process هيبقى له buffer لوحده
 process_buffers = {}
 
-# الـ processes اللي مش هنراقبها
 IGNORE_LIST = [
     b"firefox", b"code", b"VS Code", b"Xorg",
     b"python3", b"gnome", b"systemd", b"snapd"
@@ -50,29 +48,13 @@ def predict(pid, comm, buffer):
 def handle_event(cpu, data, size):
     event = b["events"].event(data)
     comm = event.comm
-
-    # تجاهل الـ processes دي
     for ignore in IGNORE_LIST:
         if ignore in comm:
             return
-
     pid = event.pid
-
     if pid not in process_buffers:
         process_buffers[pid] = []
-
     process_buffers[pid].append(int(event.syscall_id))
-
     if len(process_buffers[pid]) >= 50:
         predict(pid, comm.decode('utf-8', errors='replace'), process_buffers[pid])
         process_buffers[pid] = []
-
-
-
-try:
-    b["events"].open_perf_buffer(handle_event, page_cnt=64)
-    print("🔍 Monitoring started... Press Ctrl+C to stop")
-    while True:
-        b.perf_buffer_poll()
-except KeyboardInterrupt:
-    print("\n⛔ Monitoring stopped.")
