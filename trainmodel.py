@@ -4,6 +4,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 import pickle
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 DATASET_PATH = "/home/f/Downloads/archive (1)/ADFA-LD"
 NUM_SYSCALLS = 400
@@ -78,3 +81,28 @@ with open("ids_model.pkl", "wb") as f:
     pickle.dump(model, f)
 
 print("✅ Model saved as ids_model.pkl")
+
+
+# حساب الـ metrics
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
+
+print(f"✅ Accuracy:  {accuracy:.2%}")
+print(f"✅ Precision: {precision:.2%}")
+print(f"✅ Recall:    {recall:.2%}")
+print(f"✅ F1 Score:  {f1:.2%}")
+
+# رسم الـ Confusion Matrix
+cm = confusion_matrix(y_test, y_pred)
+plt.figure(figsize=(6,4))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=["Normal", "Attack"],
+            yticklabels=["Normal", "Attack"])
+plt.title("Confusion Matrix")
+plt.ylabel("Actual")
+plt.xlabel("Predicted")
+plt.tight_layout()
+plt.savefig("confusion_matrix.png")
+print("✅ Confusion Matrix saved!")
